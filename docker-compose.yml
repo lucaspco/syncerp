@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: syncerp_postgres
+    environment:
+      POSTGRES_DB: syncerp_db
+      POSTGRES_USER: syncerp_user
+      POSTGRES_PASSWORD: syncerp_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - syncerp_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U syncerp_user -d syncerp_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  syncerp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: syncerp_app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/syncerp_db
+      SPRING_DATASOURCE_USERNAME: syncerp_user
+      SPRING_DATASOURCE_PASSWORD: syncerp_pass
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - syncerp_network
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  syncerp_network:
+    driver: bridge

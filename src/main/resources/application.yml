@@ -1,0 +1,103 @@
+spring:
+  application:
+    name: syncerp
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL15Dialect
+        format_sql: true
+        use_sql_comments: true
+    show-sql: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/syncerp_db
+    username: syncerp_user
+    password: syncerp_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 100
+        allow-core-thread-timeout: true
+        keep-alive: 60s
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  error:
+    include-message: always
+    include-stacktrace: on_param
+
+logging:
+  level:
+    root: INFO
+    com.syncerp: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/syncerp.log
+    max-size: 10MB
+    max-history: 30
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      simple:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+
+syncerp:
+  bling:
+    api-base-url: https://api.bling.com.br/Api/v3
+    oauth-token-url: https://api.bling.com.br/oauth/authorize
+    timeout-ms: 10000
+    retry-max-attempts: 3
+    retry-initial-delay-ms: 1000
+    retry-max-delay-ms: 10000
+    retry-multiplier: 2.0
+  webhook:
+    response-timeout-ms: 1000
+  dedup:
+    window-seconds: 60
+  pool:
+    core-size: 5
+    max-size: 10
+    queue-capacity: 100
+    thread-name-prefix: syncerp-worker-
