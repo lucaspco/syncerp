@@ -20,12 +20,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
-            cd /root/syncerp-docker
-            docker-compose down
-            git pull origin main
-            docker-compose pull
-            docker-compose up -d --build
-            echo "Deploy completed successfully!"
+            lxc exec syncerp-prod -- bash -c "cd /root/syncerp-docker && docker-compose down && git pull origin main && docker-compose pull && docker-compose up -d --build && echo 'Deploy completed successfully!'"
       
       - name: Verify Deployment
         uses: appleboy/ssh-action@master
@@ -34,8 +29,4 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
-            cd /root/syncerp-docker
-            echo "Checking container status..."
-            docker ps -a
-            echo "Checking logs..."
-            docker logs syncerp_app | tail -20
+            lxc exec syncerp-prod -- bash -c "cd /root/syncerp-docker && echo 'Checking container status...' && docker ps -a && echo 'Checking logs...' && docker logs syncerp_app | tail -20"
