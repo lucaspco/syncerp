@@ -1,52 +1,33 @@
-# Maven
-target/
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
+# Environment files (não commitam)
+.env
+.env.dev
+.env.prod
+.env.local
 
 # IDE
 .idea/
-*.iml
-*.iws
-*.ipr
 .vscode/
-*.code-workspace
-.DS_Store
+*.iml
 *.swp
 *.swo
 *~
 
 # Build
-bin/
-build/
-out/
+target/
+*.jar
+*.war
 *.class
-.gradle/
 
 # Logs
 logs/
 *.log
-*.log.*
+
+# Maven
+.m2/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Docker
-.dockerignore
-
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Database
-*.db
-*.sqlite
-*.h2.db
+docker-compose.override.yml

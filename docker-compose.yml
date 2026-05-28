@@ -5,40 +5,58 @@ services:
     image: postgres:15-alpine
     container_name: syncerp_postgres
     environment:
-      POSTGRES_DB: syncerp_db
-      POSTGRES_USER: syncerp_user
-      POSTGRES_PASSWORD: syncerp_pass
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGTZ: America/Sao_Paulo
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - syncerp_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U syncerp_user -d syncerp_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   syncerp:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: syncerp_app
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/syncerp_db
-      SPRING_DATASOURCE_USERNAME: syncerp_user
-      SPRING_DATASOURCE_PASSWORD: syncerp_pass
-      JAVA_OPTS: "-Xmx512m -Xms256m"
-    ports:
-      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SERVER_PORT: ${SERVER_PORT}
+      SERVER_SERVLET_CONTEXT_PATH: ${SERVER_CONTEXT_PATH}
+      JAVA_OPTS: ${JAVA_OPTS}
+      SPRING_TASK_EXECUTION_POOL_CORE_SIZE: ${POOL_CORE_SIZE}
+      SPRING_TASK_EXECUTION_POOL_MAX_SIZE: ${POOL_MAX_SIZE}
+      SPRING_TASK_EXECUTION_POOL_QUEUE_CAPACITY: ${POOL_QUEUE_CAPACITY}
+      BLING_API_BASE_URL: ${BLING_API_BASE_URL}
+      BLING_TIMEOUT_MS: ${BLING_TIMEOUT_MS}
+      WEBHOOK_RESPONSE_TIMEOUT_MS: ${WEBHOOK_RESPONSE_TIMEOUT_MS}
+    ports:
+      - "${SERVER_PORT}:8080"
     networks:
       - syncerp_network
     volumes:
       - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}${SERVER_CONTEXT_PATH}/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
 
 volumes:
   postgres_data:
