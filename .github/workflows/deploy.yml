@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: [ "CI/CD Pipeline" ]
     types: [ completed ]
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   deploy:
@@ -20,7 +20,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
-            lxc exec syncerp-prod -- bash -c "cd /root/syncerp-docker && docker-compose down && git pull origin main && docker-compose pull && docker-compose up -d --build && echo 'Deploy completed successfully!'"
+            lxc exec syncerp-prod -- bash -c "cd /root/syncerp-docker && docker-compose down && git pull origin ${{ github.event.workflow_run.head_branch }} && docker-compose pull && docker-compose up -d --build && echo 'Deploy completed successfully!'"
       
       - name: Verify Deployment
         uses: appleboy/ssh-action@master
