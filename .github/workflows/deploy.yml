@@ -21,7 +21,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
-            pct exec 100 -- bash -c "cd /root/syncerp-docker && docker-compose down && git pull origin ${{ github.event.workflow_run.head_branch }} && docker-compose pull && docker-compose up -d --build && echo 'Deploy completed successfully!'"
+            pct exec 100 -- bash -c "cd /root/syncerp-docker && docker compose down && git pull origin ${{ github.event.workflow_run.head_branch }} && docker-compose pull && docker-compose up -d --build && echo 'Deploy completed successfully!'"
 
       - name: Verify Deployment
         uses: appleboy/ssh-action@master
