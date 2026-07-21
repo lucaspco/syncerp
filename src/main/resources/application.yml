@@ -6,7 +6,6 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         use_sql_comments: true
     show-sql: false
@@ -85,15 +84,36 @@ springdoc:
 
 syncerp:
   bling:
-    api-base-url: https://api.bling.com.br/Api/v3
-    oauth-token-url: https://api.bling.com.br/oauth/authorize
-    timeout-ms: 10000
+    api-base-url: ${BLING_API_BASE_URL:https://api.bling.com.br/Api/v3}
+    # Endpoints OAuth conforme doc oficial (developer.bling.com.br/aplicativos)
+    # ATENCAO: hosts diferentes! authorize = www / token = api
+    oauth-authorize-url: ${BLING_AUTHORIZE_URL:https://www.bling.com.br/Api/v3/oauth/authorize}
+    oauth-token-url: ${BLING_TOKEN_URL:https://api.bling.com.br/Api/v3/oauth/token}
+    redirect-uri: ${BLING_REDIRECT_URI}
+    timeout-ms: ${BLING_TIMEOUT_MS:10000}
     retry-max-attempts: 3
     retry-initial-delay-ms: 1000
     retry-max-delay-ms: 10000
     retry-multiplier: 2.0
+    # ============================================================
+    # 4 CNPJs — cada um com seu proprio app no Bling
+    # SUBSTITUA as chaves pelos CNPJs REAIS (somente digitos)
+    # ============================================================
+    clients:
+      "11111111111111":
+        client-id: ${BLING_CLIENT_ID_CNPJ1}
+        client-secret: ${BLING_CLIENT_SECRET_CNPJ1}
+      "22222222222222":
+        client-id: ${BLING_CLIENT_ID_CNPJ2}
+        client-secret: ${BLING_CLIENT_SECRET_CNPJ2}
+      "33333333333333":
+        client-id: ${BLING_CLIENT_ID_CNPJ3}
+        client-secret: ${BLING_CLIENT_SECRET_CNPJ3}
+      "44444444444444":
+        client-id: ${BLING_CLIENT_ID_CNPJ4}
+        client-secret: ${BLING_CLIENT_SECRET_CNPJ4}
   webhook:
-    response-timeout-ms: 1000
+    response-timeout-ms: ${WEBHOOK_RESPONSE_TIMEOUT_MS:1000}
   dedup:
     window-seconds: 60
   pool:

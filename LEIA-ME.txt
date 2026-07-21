@@ -1,0 +1,62 @@
+SyncERP — FASE 2 COMPLETA — Onde colocar cada arquivo
+=======================================================
+
+A estrutura desta pasta espelha o repositorio. Copie cada arquivo
+para o mesmo caminho no seu projeto (C:\desenvolvimento\syncerp-phase1):
+
+NOVOS (criar):
+  src/main/java/com/syncerp/domain/ApiStatus.java
+  src/main/java/com/syncerp/domain/BlingAccount.java
+  src/main/java/com/syncerp/repository/BlingAccountRepository.java   (criar pasta repository)
+  src/main/java/com/syncerp/config/BlingProperties.java
+  src/main/java/com/syncerp/integration/BlingTokenResponse.java      (criar pasta integration)
+  src/main/java/com/syncerp/integration/BlingOAuthService.java
+  src/main/java/com/syncerp/api/CnpjController.java                  (criar pasta api)
+
+SUBSTITUIR (sobrescrever os existentes):
+  src/main/resources/application.yml
+  docker-compose.yml
+  .env.example
+  .env            <- ATENCAO: revisar antes! (ver abaixo)
+
+ANTES DE SUBIR:
+1. No application.yml, substituir "11111111111111".."44444444444444"
+   pelos 4 CNPJs REAIS (somente digitos), nas chaves de syncerp.bling.clients.
+2. No .env, o CNPJ1 ja esta preenchido com o app que voce criou.
+   CNPJ 2-4 estao como "pendente_criar_app" — criar os 3 apps no Bling
+   e preencher. (A app sobe mesmo com pendentes; so nao autoriza esses CNPJs.)
+3. Conferir que .env esta no .gitignore (NUNCA commitar .env, so .env.example).
+
+TESTE LOCAL:
+  docker compose down
+  docker compose up --build
+
+FLUXO DE TESTE (apos subir):
+1. Cadastrar a conta do CNPJ 1:
+   POST http://localhost:8080/api/cnpjs
+   Body JSON: { "cnpj": "SEU_CNPJ_14_DIGITOS", "accountName": "Empresa 1" }
+   (pode fazer pelo Swagger: http://localhost:8080/api/swagger-ui.html)
+2. Pegar o "id" retornado e abrir NO NAVEGADOR:
+   http://localhost:8080/api/cnpjs/{id}/autorizar
+   -> redireciona pro Bling -> login -> Autorizar
+   -> Bling redireciona pro callback -> JSON "Autorizacao concluida"
+3. Conferir: GET http://localhost:8080/api/cnpjs  (apiStatus = ACTIVE)
+4. Testar conectividade: POST http://localhost:8080/api/cnpjs/{id}/testar
+
+NOTA SOBRE O CALLBACK EM DEV:
+O redirect_uri cadastrado no app Bling e https://syncerp.ddnt.net/api/cnpjs/callback.
+O Bling SEMPRE redireciona para a URL cadastrada. Para testar 100% local,
+o dominio syncerp.ddnt.net precisa apontar para a maquina que roda o Docker
+(ou teste direto no servidor de producao apos o deploy).
+
+GIT (depois do teste local OK):
+  git checkout develop
+  git add src docker-compose.yml .env.example
+  git commit -m "feat: fase 2 - OAuth2 Bling multi-CNPJ (modelo, servico, endpoints)"
+  git push origin develop
+  -> conferir CI verde na aba Actions
+
+SEGURANCA:
+- O client_secret do CNPJ1 foi colado no chat — considere clicar em
+  "Redefinir client secret" no painel Bling depois que tudo funcionar,
+  e atualizar o .env. Custa 30 segundos e elimina o risco.
